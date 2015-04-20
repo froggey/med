@@ -2,6 +2,8 @@
 
 ;;; testing
 
+(defvar *break-on-command-signals* nil)
+
 (defun translate-command (character)
   "Translate a character to a command."
   (multiple-value-bind (command found-p)
@@ -12,10 +14,13 @@
 
 (defun editor-loop ()
   (flet ((call-command (command)
-           (let ((buffer (current-buffer *editor*)))
-             (mapc 'funcall (buffer-pre-command-hooks buffer))
-             (funcall command)
-             (mapc 'funcall (buffer-post-command-hooks buffer)))))
+           (let ((buffer (current-buffer *editor*))
+                 (*break-on-signals* (or *break-on-signals*
+                                         *break-on-command-signals*)))
+             (with-simple-restart (abort "Abort command ~S" command)
+               (mapc 'funcall (buffer-pre-command-hooks buffer))
+               (funcall command)
+               (mapc 'funcall (buffer-post-command-hooks buffer))))))
   (loop
      (force-redisplay)
      (let* ((*this-character* (editor-read-char))
@@ -54,7 +59,7 @@
                             :framebuffer framebuffer
                             :title "Editor"
                             :close-button-p t
-                            :damage-function (mezzano.gui.widgets:default-damage-function 
+                            :damage-function (mezzano.gui.widgets:default-damage-function
                                                 window)))
       (*editor* (make-instance 'editor
                                :fifo fifo
@@ -78,9 +83,9 @@
           top left)
         (mezzano.gui.compositor:damage-window window
                                               left top
-                                              (- (mezzano.gui.compositor:width window) 
+                                              (- (mezzano.gui.compositor:width window)
                                                  left right)
-                                              (- (mezzano.gui.compositor:height window) 
+                                              (- (mezzano.gui.compositor:height window)
                                                  top bottom)))
     (switch-to-buffer (get-buffer-create "*scratch*"))
     (let ((buffer (get-buffer-create "*Messages*")))
@@ -90,15 +95,16 @@
       (ignore-errors
         (when initial-file
           (find-file initial-file)))
-        (catch 'quit
-          (loop
-            (handler-case
-              (editor-loop)
-              (error (c)
-              (ignore-errors
-                (format t "Editor error: ~A~%" c)
-                (setf (pending-redisplay *editor*) t))))))
-        (setf *editors* (remove *editor* *editors*)))))))))
+        (unwind-protect
+             (catch 'quit
+               (loop
+                  (handler-case
+                      (editor-loop)
+                    (error (c)
+                      (ignore-errors
+                        (format t "Editor error: ~A~%" c)
+                        (setf (pending-redisplay *editor*) t))))))
+          (setf *editors* (remove *editor* *editors*))))))))))
 
 (defvar *messages* (make-instance 'buffer))
 
@@ -108,11 +114,11 @@
   (mezzano.supervisor:make-thread
     (lambda () (editor-main width height initial-file))
     :name "Editor"
-    :initial-bindings `((*terminal-io* ,(make-instance 
+    :initial-bindings `((*terminal-io* ,(make-instance
                                            'mezzano.gui.popup-io-stream:popup-io-stream
                                            :title "Editor console"))
                         (*standard-input* ,(make-synonym-stream '*terminal-io*))
-                        (*standard-output* ,(make-instance 'buffer-stream 
+                        (*standard-output* ,(make-instance 'buffer-stream
                                                            :buffer *messages*))
                         (*error-output* ,(make-synonym-stream '*terminal-io*))
                         (*trace-output* ,(make-synonym-stream '*terminal-io*))
