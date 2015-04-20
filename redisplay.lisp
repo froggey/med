@@ -243,7 +243,7 @@
   (let* ((buffer (current-buffer *editor*)))
     (unless (eql buffer *minibuffer*)
       (insert *mode-line-buffer*
-        (format nil " [~A] ~A L~S C~S    (~A)" 
+        (format nil " [~A] ~A L~S C~S    (~A)"
            (if (buffer-modified buffer) "*" " ")
            (buffer-property buffer 'name)
            (1+ (truncate (line-number (mark-line (buffer-point buffer))) 10000))
@@ -376,4 +376,6 @@ Returns true when the screen is up-to-date, false if the screen is dirty and the
 
 (defun force-redisplay ()
   (dolist (editor *editors*)
-    (mezzano.supervisor::fifo-push *force-redisplay-event* (fifo editor))))
+    (cond ((eql editor *editor*)
+           (setf (pending-redisplay editor) t))
+          (t (mezzano.supervisor::fifo-push *force-redisplay-event* (fifo editor))))))
