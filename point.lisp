@@ -72,7 +72,7 @@ Tries to stay as close to the hint column as possible."
              (new-line (funcall accessor current-line)))
         (cond (new-line
                (setf (mark-line point) new-line
-                     (mark-charpos point) (min (buffer-property buffer 'column-hint)
+                     (mark-charpos point) (min (buffer-property buffer 'column-hint 0)
                                                (line-length new-line))))
               (t (return))))))
   (values))
