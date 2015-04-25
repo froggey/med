@@ -113,9 +113,10 @@
     (newline-command)))
 
 (defun execute-extended-command ()
-  (let ((command (concatenate 'string "(med::" (read-from-minibuffer "M-x ") "-command)")))
+  (let ((command (concatenate 'string (read-from-minibuffer "M-x ") "-command")))
     (format t "Executing extended command: ~A~%" command)
-    (eval (read-from-string command))))
+    (funcall (let ((*package* (find-package :med)))
+               (read-from-string command)))))
 
 (defun new-frame-command ()
   (spawn))
