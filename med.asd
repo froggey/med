@@ -31,3 +31,12 @@
                (:file "commands/grep")
                (:file "commands/find-definition")
                (:file "commands/isearch")))
+
+(defsystem :med-web
+  :version "0.1"
+  :description "Web browser for med"
+  :author "Henry Harrington <henry.harrington@gmail.com>"
+  :licence "MIT"
+  :serial t
+  :depends-on (:cl-html5-parser :med)
+  :components ((:file "commands/web")))
