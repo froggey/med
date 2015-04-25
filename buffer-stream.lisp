@@ -1,13 +1,13 @@
 (in-package :med)
 
-(defclass buffer-stream (sys.gray::fundamental-character-output-stream)
+(defclass buffer-stream (sys.gray:fundamental-character-output-stream)
   ((buffer :initarg :buffer :reader buffer-stream-buffer)
    (filter :initarg :filter :reader buffer-stream-filter :initform nil)))
 
-(defclass buffer-input-stream (sys.gray::fundamental-character-input-stream)
+(defclass buffer-input-stream (sys.gray:fundamental-character-input-stream)
   ((buffer :initarg :buffer :reader buffer-stream-buffer)))
 
-(defmethod sys.gray::stream-write-char ((stream buffer-stream) char)
+(defmethod sys.gray:stream-write-char ((stream buffer-stream) char)
   (let ((buffer (buffer-stream-buffer stream))
         (filter (buffer-stream-filter stream)))
     (move-end-of-buffer buffer)
@@ -21,7 +21,7 @@
     (when (or (char= char #\Newline) (char= char #\Space))
       (force-redisplay))))
 
-(defmethod sys.gray::stream-read-char-no-hang ((stream buffer-stream))
+(defmethod sys.gray:stream-read-char-no-hang ((stream buffer-stream))
   (let* ((buffer (buffer-stream-buffer stream))
          (point (buffer-point buffer))
          (input-start (buffer-property buffer 'input-start)))
@@ -31,14 +31,22 @@
                 (error () #\Newline))))
         (move-mark input-start)
         c))))
-  
-(defmethod sys.gray::stream-read-char ((stream buffer-stream))
+
+(defmacro awhen (test &body body)
+  `(let ((it ,test))
+     (when it
+       ,@body)))
+
+(defmethod sys.gray:stream-read-char ((stream buffer-stream))
   (loop
-     (awhen (sys.gray::stream-read-char-no-hang stream)
+     (awhen (sys.gray:stream-read-char-no-hang stream)
        (return it))
      (mezzano.supervisor::fifo-push (mezzano.supervisor::fifo-pop (fifo *editor*))
                                     (fifo *editor*))))
 
-(defmethod sys.gray::stream-unread-char ((stream buffer-stream) char)
+(defmethod sys.gray:stream-unread-char ((stream buffer-stream) char)
   (let ((buffer (buffer-stream-buffer stream)))
     (move-mark (buffer-property buffer 'input-start) -1)))
+
+(defmethod sys.gray:stream-start-line-p ((stream buffer-stream))
+  (start-of-line-p (buffer-point (buffer-stream-buffer stream))))

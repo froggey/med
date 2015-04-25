@@ -20,7 +20,7 @@
                                                 :buffer buffer
                                                 :filter #'repl-buffer-filter)))
     (setf (buffer-property buffer 'repl-prompt-end) (copy-mark (buffer-point buffer)))
-    (format *repl-buffer-stream* "~%~A> " (sys.int::package-shortest-name *package*))
+    (format *repl-buffer-stream* "~&~A> " (sys.int::package-shortest-name *package*))
     (move-mark-to-mark (buffer-property buffer 'repl-prompt-end) (buffer-point buffer))
     (push buffer (buffer-list))
     (setf (last-buffer *editor*) (current-buffer *editor*))
@@ -49,7 +49,7 @@
              (handler-case
                  (format t "~S" (eval (read-from-string code)))
                  (error (e) (format t "~S~%" e) "")))
-           (format t "~%~A> " (sys.int::package-shortest-name *package*))
+           (format t "~&~A> " (sys.int::package-shortest-name *package*))
            (finish-output)
            (force-redisplay))
            (setf (buffer-key-map buffer) *repl-key-map*))))
@@ -57,7 +57,7 @@
 (defun repl-finish-input-command ()
   (let ((buffer (current-buffer *editor*)))
     (move-end-of-line buffer)
-    ;; FIXME: clearing the buffer by cutting the text causes the 
+    ;; FIXME: clearing the buffer by cutting the text causes the
     ;; editor to crash when you hit enter
     (let ((code (buffer-string buffer
                                (buffer-property buffer 'repl-prompt-end)
@@ -66,10 +66,10 @@
                  (not (string= code (car *repl-history*))))
         (push code *repl-history*))
       (format *repl-buffer-stream* "~%")
-      (mezzano.supervisor::make-thread (lambda () 
-                                         (repl-eval code))
-                                       :name "repl"
-                                       :initial-bindings `((*editor* ,*editor*)))
+      (mezzano.supervisor:make-thread (lambda ()
+                                        (repl-eval code))
+                                      :name "repl"
+                                      :initial-bindings `((*editor* ,*editor*)))
       (setf *repl-history-number* 0))))
 
 (defun repl-clear-output ()
