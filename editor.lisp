@@ -123,7 +123,9 @@
   (let ((buffer (current-buffer *editor*)))
     (setf (mezzano.gui.widgets:frame-title (frame *editor*))
           (format nil "MED - ~A~A"
-                  (or (buffer-property buffer 'path) "Untitled")
+                  (or (buffer-property buffer 'path)
+                      (buffer-property buffer 'title)
+                      "Untitled")
                   (cond ((buffer-property buffer 'new-file)
                          " (New file)")
                         (t ""))))
