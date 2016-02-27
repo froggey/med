@@ -28,7 +28,9 @@
 
 (defun repl-buffer-filter (buffer c)
   (when (char= c #\>)
-    (move-mark-to-mark (buffer-property buffer 'repl-prompt-end) (buffer-point buffer))))
+    (move-mark-to-mark (buffer-property buffer 'repl-prompt-end) (buffer-point buffer))
+    ;; There's a space after the >, skip it.
+    (move-mark (buffer-point buffer))))
 
 (defun repl-eval (code)
   (if (string= code "")
