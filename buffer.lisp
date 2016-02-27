@@ -13,7 +13,7 @@
    (%post-command-hooks :initarg :post-command-hooks :accessor buffer-post-command-hooks)
    (%lock :initarg :lock :reader buffer-lock)
    (%properties))
-  (:default-initargs 
+  (:default-initargs
      :mark-active nil
      :key-map (make-hash-table)
      :pre-command-hooks '()
@@ -145,6 +145,8 @@ Don't use this directly, use INSERT instead."
        else do (insert-char (buffer-point buffer) ch))))
 
 (defun order-marks (mark-1 mark-2)
+  (assert (eql (line-buffer (mark-line mark-1))
+               (line-buffer (mark-line mark-2))))
   (let ((line-1 (mark-line mark-1))
         (line-2 (mark-line mark-2)))
     (cond ((eql line-1 line-2)
@@ -354,5 +356,3 @@ then merge the current line and next line."
           (vector-push-extend (line-character (mark-line m1) (mark-charpos m1)) string))
       (move-mark m1))
     string))
-
-

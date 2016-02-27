@@ -19,7 +19,7 @@
       (setf *repl-buffer-stream* (make-instance 'buffer-stream
                                                 :buffer buffer
                                                 :filter #'repl-buffer-filter)))
-    (setf (buffer-property buffer 'repl-prompt-end) (copy-mark (buffer-point buffer)))
+    (setf (buffer-property buffer 'repl-prompt-end) (copy-mark (buffer-point buffer) :left))
     (format *repl-buffer-stream* "~&~A> " (sys.int::package-shortest-name *package*))
     (move-mark-to-mark (buffer-property buffer 'repl-prompt-end) (buffer-point buffer))
     (push buffer (buffer-list))
@@ -51,14 +51,13 @@
                  (error (e) (format t "~S~%" e) "")))
            (format t "~&~A> " (sys.int::package-shortest-name *package*))
            (finish-output)
-           (force-redisplay))
-           (setf (buffer-key-map buffer) *repl-key-map*))))
+           (let ((*editor* nil))
+             (force-redisplay)))
+         (setf (buffer-key-map buffer) *repl-key-map*))))
 
 (defun repl-finish-input-command ()
   (let ((buffer (current-buffer *editor*)))
-    (move-end-of-line buffer)
-    ;; FIXME: clearing the buffer by cutting the text causes the
-    ;; editor to crash when you hit enter
+    (move-end-of-buffer buffer)
     (let ((code (buffer-string buffer
                                (buffer-property buffer 'repl-prompt-end)
                                (buffer-point buffer))))
@@ -84,7 +83,7 @@
   (let ((buffer (current-buffer *editor*)))
     (move-end-of-buffer buffer)
     (delete-region buffer
-                   (buffer-property buffer 'input-start) 
+                   (buffer-property buffer 'input-start)
                    (buffer-point buffer))))
 
 (defun repl-previous-history ()
@@ -114,14 +113,14 @@
         (move-sexp buffer -1)
         (delete-region buffer point (buffer-point buffer))
         (insert buffer (nth *repl-complete-results-number* *repl-complete-results*))
-        (setf *repl-complete-results-number* 
+        (setf *repl-complete-results-number*
               (mod (1+ *repl-complete-results-number*) (length *repl-complete-results*)))))
     (progn
   (let ((symbol (symbol-at-point buffer))
         results)
     (push symbol results)
     (setf symbol (string-upcase symbol))
-    (do-symbols (s) 
+    (do-symbols (s)
        (when (eql 0 (search symbol (symbol-name s) :test #'equal))
          (push (string-downcase (symbol-name s)) results)))
     ;;(format t "~A" results)
@@ -133,7 +132,7 @@
        (setf *repl-complete-results-number* 0)))))))
 
 ;; TODO: refactor this with find-matching-paren-command
-;; make a generic function that takes a function to move to the 
+;; make a generic function that takes a function to move to the
 ;; beginning of a toplevel form
 (defun repl-find-matching-paren ()
   "Jump the cursor the paren that matches the one under the cursor."
@@ -143,7 +142,7 @@
            (c (line-character (mark-line point) (mark-charpos point))))
       (when (char= c #\))
          (repl-beginning-of-line)
-         (let ((string (buffer-string buffer 
+         (let ((string (buffer-string buffer
                                       point
                                       (buffer-point buffer)))
                (count 1))
@@ -176,7 +175,7 @@
 
 (defun repl-delete-backward-char ()
   (let ((buffer (get-buffer "*repl*")))
-    (when (mark< (buffer-property buffer 'repl-prompt-end) 
+    (when (mark< (buffer-property buffer 'repl-prompt-end)
                  (buffer-point buffer))
       (delete-char (get-buffer "*repl*") -1))))
 
@@ -190,6 +189,6 @@
   (set-key #\C-A 'repl-beginning-of-line *repl-key-map*)
   (set-key #\Backspace 'repl-delete-backward-char *repl-key-map*)
   (set-key #\Tab 'repl-complete *repl-key-map*)
-  (set-key #\M-O 'repl-find-matching-paren *repl-key-map*)  
-  (set-key #\Comma 'cd-command *repl-key-map*)  
+  (set-key #\M-O 'repl-find-matching-paren *repl-key-map*)
+  (set-key #\Comma 'cd-command *repl-key-map*)
 )

@@ -15,7 +15,7 @@
     (let ((input-start (buffer-property buffer 'input-start)))
       (if input-start
           (move-mark-to-mark (buffer-property buffer 'input-start) (buffer-point buffer))
-          (setf (buffer-property buffer 'input-start) (copy-mark (buffer-point buffer)))))
+          (setf (buffer-property buffer 'input-start) (copy-mark (buffer-point buffer) :left))))
     (when filter
       (funcall filter buffer char))
     (when (or (char= char #\Newline) (char= char #\Space))
