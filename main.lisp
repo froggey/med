@@ -50,9 +50,9 @@
 (defvar *current-editor* ())
 
 (defun editor-main (width height initial-file)
-  (mezzano.gui.font:with-font (font mezzano.gui.font:*default-monospace-font* mezzano.gui.font:*default-monospace-font-size*)
-    (mezzano.gui.font:with-font (font-bold mezzano.gui.font::*default-monospace-bold-font* mezzano.gui.font:*default-monospace-font-size*)
-      (let ((fifo (mezzano.supervisor:make-fifo 50)))
+  (let ((font (mezzano.gui.font:open-font mezzano.gui.font:*default-monospace-font* mezzano.gui.font:*default-monospace-font-size*))
+        (font-bold (mezzano.gui.font:open-font mezzano.gui.font::*default-monospace-bold-font* mezzano.gui.font:*default-monospace-font-size*))
+        (fifo (mezzano.supervisor:make-fifo 50)))
   (mezzano.gui.compositor:with-window (window fifo (or width 640) (or height 700) :kind :editor)
     (let* ((framebuffer (mezzano.gui.compositor:window-buffer window))
       (frame (make-instance 'mezzano.gui.widgets:frame
@@ -76,11 +76,12 @@
          (mezzano.gui.widgets:draw-frame frame)
          (multiple-value-bind (left right top bottom)
            (mezzano.gui.widgets:frame-size (frame *editor*))
-        (mezzano.gui:bitset (- (mezzano.gui.compositor:height window) top bottom)
-          (- (mezzano.gui.compositor:width window) left right)
-          (background-colour *editor*)
-          framebuffer
-          top left)
+        (mezzano.gui:bitset :set
+                            (- (mezzano.gui.compositor:width window) left right)
+                            (- (mezzano.gui.compositor:height window) top bottom)
+                            (background-colour *editor*)
+                            framebuffer
+                            left top)
         (mezzano.gui.compositor:damage-window window
                                               left top
                                               (- (mezzano.gui.compositor:width window)
@@ -104,7 +105,7 @@
                       (ignore-errors
                         (format t "Editor error: ~A~%" c)
                         (setf (pending-redisplay *editor*) t))))))
-          (setf *editors* (remove *editor* *editors*))))))))))
+          (setf *editors* (remove *editor* *editors*))))))))
 
 (defvar *messages* (make-instance 'buffer))
 
