@@ -91,6 +91,24 @@
   (let ((*editor* editor))
     (find-file (path event))))
 
+(defmethod dispatch-event (app (event mezzano.gui.compositor:resize-request-event))
+  (let ((old-width (mezzano.gui.compositor:width (window app)))
+        (old-height (mezzano.gui.compositor:height (window app)))
+        (new-width (max 100 (mezzano.gui.compositor:width event)))
+        (new-height (max 100 (mezzano.gui.compositor:height event))))
+    (when (or (not (eql old-width new-width))
+              (not (eql old-height new-height)))
+      (let ((new-framebuffer (mezzano.gui:make-surface
+                              new-width new-height)))
+        (mezzano.gui.widgets:resize-frame (frame app) new-framebuffer)
+        (mezzano.gui.compositor:resize-window
+         (window app) new-framebuffer
+         :origin (mezzano.gui.compositor:resize-origin event))))))
+
+(defmethod dispatch-event (app (event mezzano.gui.compositor:resize-event))
+  (redraw-screen)
+  (force-redisplay))
+
 (defun editor-read-char-1 ()
   (catch 'next-character
     (when (pending-event *editor*)

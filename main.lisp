@@ -59,8 +59,10 @@
                             :framebuffer framebuffer
                             :title "Editor"
                             :close-button-p t
+                            :resizablep t
                             :damage-function (mezzano.gui.widgets:default-damage-function
-                                                window)))
+                                                window)
+                            :set-cursor-function (mezzano.gui.widgets:default-cursor-function window)))
       (*editor* (make-instance 'editor
                                :fifo fifo
                                :font font
