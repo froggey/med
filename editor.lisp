@@ -73,6 +73,10 @@
   (declare (ignore editor event))
   (throw 'quit nil))
 
+(defmethod dispatch-event (editor (event mezzano.gui.compositor:quit-event))
+  (declare (ignore editor event))
+  (throw 'quit nil))
+
 (defmethod dispatch-event (editor (event mezzano.gui.compositor:key-event))
   (when (not (mezzano.gui.compositor:key-releasep event))
     (throw 'next-character
