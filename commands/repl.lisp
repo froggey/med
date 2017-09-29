@@ -49,7 +49,7 @@
            (progn
              (setf (buffer-key-map buffer) (make-hash-table))
              (handler-case
-                 (format t "~S" (eval (read-from-string code)))
+                 (format t "~S~%" (eval (read-from-string code)))
                  (error (e) (format t "~S~%" e) "")))
            (format t "~&~A> " (sys.int::package-shortest-name *package*))
            (finish-output)
