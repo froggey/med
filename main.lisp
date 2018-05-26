@@ -49,7 +49,7 @@
 (defvar *editors* ())
 (defvar *current-editor* ())
 
-(defun editor-main (width height initial-file)
+(defun editor-main (width height initial-file initial-position)
   (let ((font (mezzano.gui.font:open-font mezzano.gui.font:*default-monospace-font* mezzano.gui.font:*default-monospace-font-size*))
         (font-bold (mezzano.gui.font:open-font mezzano.gui.font::*default-monospace-bold-font* mezzano.gui.font:*default-monospace-font-size*))
         (fifo (mezzano.supervisor:make-fifo 50)))
@@ -97,25 +97,29 @@
       (push *editor* *editors*)
       (ignore-errors
         (when initial-file
-          (find-file initial-file)))
-        (unwind-protect
-             (catch 'quit
-               (loop
-                  (handler-case
-                      (editor-loop)
-                    (error (c)
-                      (ignore-errors
-                        (format t "Editor error: ~A~%" c)
-                        (setf (pending-redisplay *editor*) t))))))
-          (setf *editors* (remove *editor* *editors*))))))))
+          (find-file initial-file)
+          (when initial-position
+            (move-beginning-of-buffer (current-buffer *editor*))
+            (move-char (current-buffer *editor*) initial-position)
+            (force-redisplay))))
+      (unwind-protect
+           (catch 'quit
+             (loop
+                (handler-case
+                    (editor-loop)
+                  (error (c)
+                    (ignore-errors
+                      (format t "Editor error: ~A~%" c)
+                      (setf (pending-redisplay *editor*) t))))))
+        (setf *editors* (remove *editor* *editors*))))))))
 
 (defvar *messages* (make-instance 'buffer))
 
-(defun spawn (&key width height initial-file)
+(defun spawn (&key width height initial-file initial-position)
   (pushnew *messages* (buffer-list))
   (setf (buffer-property *messages* 'name) "*Messages*")
   (mezzano.supervisor:make-thread
-    (lambda () (editor-main width height initial-file))
+    (lambda () (editor-main width height initial-file initial-position))
     :name "Editor"
     :initial-bindings `((*terminal-io* ,(make-instance
                                            'mezzano.gui.popup-io-stream:popup-io-stream
@@ -129,8 +133,8 @@
                         (*query-io* ,(make-synonym-stream '*terminal-io*)))))
 
 #+(or)
-(defun spawn (&key width height initial-file)
-  (mezzano.supervisor:make-thread (lambda () (editor-main width height initial-file))
+(defun spawn (&key width height initial-file initial-position)
+  (mezzano.supervisor:make-thread (lambda () (editor-main width height initial-file initial-position))
                                   :name "Editor"
                                   :initial-bindings `((*terminal-io* ,(make-instance 'mezzano.gui.popup-io-stream:popup-io-stream
                                                                                      :title "Editor console"))
@@ -140,3 +144,18 @@
                                                       (*trace-output* ,(make-synonym-stream '*terminal-io*))
                                                       (*debug-io* ,(make-synonym-stream '*terminal-io*))
                                                       (*query-io* ,(make-synonym-stream '*terminal-io*)))))
+
+(defun med-ed-hook (&key initial-pathname initial-position)
+  (let ((existing (mezzano.gui.compositor:get-window-by-kind :editor)))
+    (cond (existing
+           ;; FIXME: Bring existing editor window to front.
+           (when initial-pathname
+             (mezzano.supervisor:fifo-push
+              (make-instance 'open-file-request :path initial-pathname :position initial-position)
+              (mezzano.gui.compositor::fifo existing)
+              nil)))
+          (t
+           (spawn :initial-file initial-pathname :initial-position initial-position)))))
+
+(when (not sys.int::*ed-hook*)
+  (setf sys.int::*ed-hook* 'med-ed-hook))

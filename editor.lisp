@@ -31,7 +31,9 @@
                      :display-line-cache '()))
 
 (defclass open-file-request ()
-  ((%path :initarg :path :reader path)))
+  ((%path :initarg :path :reader path)
+   (%position :initarg :position :reader initial-position))
+  (:default-initargs :position nil))
 
 (defvar *last-command*)
 (defvar *this-command*)
@@ -93,7 +95,11 @@
 
 (defmethod dispatch-event (editor (event open-file-request))
   (let ((*editor* editor))
-    (find-file (path event))))
+    (find-file (path event))
+    (when (initial-position event)
+      (move-beginning-of-buffer (current-buffer *editor*))
+      (move-char (current-buffer *editor*) (initial-position event))
+      (force-redisplay))))
 
 (defmethod dispatch-event (app (event mezzano.gui.compositor:resize-request-event))
   (let ((old-width (mezzano.gui.compositor:width (window app)))
