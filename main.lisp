@@ -157,5 +157,5 @@
           (t
            (spawn :initial-file initial-pathname :initial-position initial-position)))))
 
-(when (not sys.int::*ed-hook*)
-  (setf sys.int::*ed-hook* 'med-ed-hook))
+(when (not mezzano.extensions:*ed-hook*)
+  (setf mezzano.extensions:*ed-hook* 'med-ed-hook))

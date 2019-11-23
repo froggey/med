@@ -137,8 +137,8 @@ Tries to stay as close to the hint column as possible."
   (let ((pair-stack '())
         (first-char t))
     (flet ((whitespacep (ch)
-             (cond 
-               ((eql (sys.int::readtable-syntax-type ch nil) :whitespace) t)
+             (cond
+               ((eql (mezzano.internals::readtable-syntax-type ch nil) :whitespace) t)
                ((eql ch #\SEMICOLON) (scan-forward mark (lambda (c) (eql c #\Newline)))
                                      t))))
       ;; Skip past any leading whitespace.
@@ -174,7 +174,7 @@ Tries to stay as close to the hint column as possible."
   (let ((pair-stack '())
         (first-char t))
     (flet ((whitespacep (ch)
-             (eql (sys.int::readtable-syntax-type ch nil) :whitespace)))
+             (eql (mezzano.internals::readtable-syntax-type ch nil) :whitespace)))
       ;; Skip past any leading whitespace.
       (scan-backward mark (complement #'whitespacep))
       (loop
@@ -221,4 +221,3 @@ Tries to stay as close to the hint column as possible."
           (insert buffer (code-char (+ #x20 i))))
         (insert buffer #\Newline))
       (point-to-mark buffer mark))))
-

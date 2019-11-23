@@ -20,7 +20,7 @@
                                                 :buffer buffer
                                                 :filter #'repl-buffer-filter)))
     (setf (buffer-property buffer 'repl-prompt-end) (copy-mark (buffer-point buffer) :left))
-    (format *repl-buffer-stream* "~&~A> " (sys.int::package-shortest-name *package*))
+    (format *repl-buffer-stream* "~&~A> " (mezzano.internals::package-shortest-name *package*))
     (move-mark-to-mark (buffer-property buffer 'repl-prompt-end) (buffer-point buffer))
     (push buffer (buffer-list))
     (setf (last-buffer *editor*) (current-buffer *editor*))
@@ -51,7 +51,7 @@
              (handler-case
                  (format t "~S~%" (eval (read-from-string code)))
                  (error (e) (format t "~S~%" e) "")))
-           (format t "~&~A> " (sys.int::package-shortest-name *package*))
+           (format t "~&~A> " (mezzano.internals::package-shortest-name *package*))
            (finish-output)
            (let ((*editor* nil))
              (force-redisplay)))

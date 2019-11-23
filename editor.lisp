@@ -86,11 +86,12 @@
           ;; Force character to uppercase when a modifier key is active, gets
           ;; around weirdness in how character names are processed.
           ;; #\C-a and #\C-A both parse as the same character (C-LATIN_CAPITAL_LETTER_A).
-          (sys.int::make-character (char-code (char-upcase (mezzano.gui.compositor:key-key event)))
-                                   :control (find :control (mezzano.gui.compositor:key-modifier-state event))
-                                   :meta (find :meta (mezzano.gui.compositor:key-modifier-state event))
-                                   :super (find :super (mezzano.gui.compositor:key-modifier-state event))
-                                   :hyper (find :hyper (mezzano.gui.compositor:key-modifier-state event)))
+          (mezzano.internals::make-character
+           (char-code (char-upcase (mezzano.gui.compositor:key-key event)))
+           :control (find :control (mezzano.gui.compositor:key-modifier-state event))
+           :meta (find :meta (mezzano.gui.compositor:key-modifier-state event))
+           :super (find :super (mezzano.gui.compositor:key-modifier-state event))
+           :hyper (find :hyper (mezzano.gui.compositor:key-modifier-state event)))
           (mezzano.gui.compositor:key-key event)))))
 
 (defmethod dispatch-event (editor (event open-file-request))
