@@ -22,8 +22,8 @@
    (%line-cache :initarg :display-line-cache :accessor display-line-cache))
   (:default-initargs :pending-event nil
                      :pending-redisplay t
-                     :foreground-colour mezzano.gui:*default-foreground-colour*
-                     :background-colour mezzano.gui:*default-background-colour*
+                     :foreground-colour mezzano.gui.theme:*foreground*
+                     :background-colour mezzano.gui.theme:*background*
                      :last-buffer '()
                      :pre-command-hooks '()
                      :post-command-hooks '()
